@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-
-// Icons and emojis for options
 const budgetOptions = [
   { value: "low", label: "Low", emoji: "💸" },
   { value: "medium", label: "Medium", emoji: "💰" },
@@ -23,6 +21,8 @@ const Form = () => {
     budget: "",
     companion: "",
   });
+
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -39,38 +39,38 @@ const Form = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  localStorage.setItem("tripPreferences", JSON.stringify(form));
-  console.log("Submitting form data:", form);
+    e.preventDefault();
+    setLoading(true);
+    localStorage.setItem("tripPreferences", JSON.stringify(form));
 
-  try {
-    // Step 1: Submit form data to /api/form/form
-    await fetch("http://localhost:5000/api/form/form", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    try {
+      await fetch("http://localhost:5000/api/form/form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    // Step 2: Request itinerary generation from AI
-    const response = await fetch("http://localhost:5000/api/trip/generate-trip", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+      const response = await fetch("http://localhost:5000/api/trip/generate-trip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.itineraryText) {
-      localStorage.setItem("itineraryText", data.itineraryText); // Optional for fallback
-      navigate("/itinerary"); // Navigate only after AI data is ready
-    } else {
-      alert("Itinerary generation failed. Please try again.");
+      if (data.itineraryText) {
+        localStorage.setItem("itineraryText", data.itineraryText);
+        navigate("/itinerary");
+      } else {
+        alert("Itinerary generation failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Submission or itinerary generation failed:", error);
+      alert("Failed to submit preferences or generate itinerary.");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Submission or itinerary generation failed:", error);
-    alert("Failed to submit preferences or generate itinerary.");
-  }
-};
+  };
 
   return (
     <form
@@ -163,13 +163,25 @@ const Form = () => {
         </div>
       </div>
 
-      {/* Submit */}
+      {/* Submit with Loader */}
       <div className="flex justify-center">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg"
+          disabled={loading}
+          className={`${
+            loading
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          } text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg flex items-center gap-3`}
         >
-          GENERATE TRIP
+          {loading ? (
+            <>
+              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Generating...
+            </>
+          ) : (
+            "GENERATE TRIP"
+          )}
         </button>
       </div>
     </form>

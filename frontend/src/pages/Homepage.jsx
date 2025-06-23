@@ -1,10 +1,17 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function HomePage() {
+  const navigate = useNavigate();
+
+  const handlePlanClick = () => {
+    navigate("/form");
+  };
+
   return (
     <div
       className="w-full h-screen font-sans flex flex-col items-center justify-center bg-cover bg-center text-white relative px-4"
-      style={{ backgroundImage: "url('/bg2.avif')" }}
+      style={{ backgroundImage: "url('back.jpg')" }}
     >
       {/* Sign In button - top-right corner */}
       <div className="absolute top-6 right-6">
@@ -26,7 +33,10 @@ function HomePage() {
         <p className="text-xl sm:text-2xl mb-6 drop-shadow-md">
           60% off regular seat prices
         </p>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition">
+        <button
+          onClick={handlePlanClick}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold transition"
+        >
           Plan the tour
         </button>
       </main>
